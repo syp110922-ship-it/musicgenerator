@@ -1,0 +1,10 @@
+# RustMidi-Forge · Stage 1 offline training pipeline dependencies.
+# Minimal-dependency approach (no miditok): we parse ABC notation ourselves
+# so the exact (genre, pitch-interval, duration, beat-position) tokenization
+# described in the spec is fully under our control.
+torch>=2.2
+safetensors>=0.4
+requests>=2.31
+PyYAML>=6.0
+numpy>=1.26
+pytest>=8.0
