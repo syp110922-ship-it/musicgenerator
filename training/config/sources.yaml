@@ -1,0 +1,80 @@
+# Per-genre public-domain / openly-licensed data source configuration.
+#
+# The original spec's genre names (JRPG field, chiptune, lo-fi, fantasy
+# orchestra) describe a *feel*, not a real public-domain dataset category —
+# public ABC/MIDI archives are overwhelmingly traditional folk dance tunes
+# and public-domain classical scores. Each genre below is mapped to the
+# closest real, freely-licensed source + filter that approximates that feel,
+# as a v1 best-effort; adjust freely once you've listened to real output.
+#
+#   JRPG_FIELD         -> thesession.org reels: lively, major-key, steady
+#                         4/4 traditional melodies.
+#   CHIPTUNE_8BIT       -> MelodyHub (Hugging Face), filtered to 4/4 and
+#                         note-dense (fast, "chiptune-run"-like) phrases.
+#   LOFI_CHILL          -> MelodyHub (Hugging Face), filtered to 4/4 and
+#                         note-sparse (slower, laid-back) phrases.
+#   FANTASY_ORCHESTRA   -> IMSLP CC0 MIDI corpus (Hugging Face), public
+#                         domain classical scores re-exported as ABC/ note
+#                         sequences.
+#
+# NOTE ON LIVE VERIFICATION: this sandbox cannot reach thesession.org or
+# huggingface.co to confirm exact JSON field names (network is restricted to
+# github/npm/pypi hosts here). `src/data_sources.py` was written against the
+# documented API shapes and unit-tested against mocked responses that mirror
+# those docs, but you MUST do one real pass of `run_training.py --source
+# live --genre <name> --dry-run` on a normal machine and check the log line
+# "parsed N / fetched M tunes" per genre before trusting the output model.
+# If a field name differs, update `abc_fields` below (no code changes
+# needed for that case).
+
+genres:
+  JRPG_FIELD:
+    source: thesession
+    params:
+      type: reel
+    filters: {}
+    description: >
+      Upbeat 4/4 Irish/Celtic traditional reels (CC0, thesession.org),
+      standing in for lively JRPG overworld themes.
+
+  CHIPTUNE_8BIT:
+    source: huggingface
+    dataset: sander-wood/melodyhub
+    abc_fields: [abc, output, input]
+    params:
+      require_4_4: true
+    filters:
+      density: dense
+    description: >
+      Fast, note-dense 4/4 melody lines from MelodyHub, standing in for
+      energetic chiptune/8-bit runs.
+
+  LOFI_CHILL:
+    source: huggingface
+    dataset: sander-wood/melodyhub
+    abc_fields: [abc, output, input]
+    params:
+      require_4_4: true
+    filters:
+      density: sparse
+    description: >
+      Slower, note-sparse 4/4 melody lines from MelodyHub, standing in for
+      relaxed lo-fi chill lines.
+
+  FANTASY_ORCHESTRA:
+    source: huggingface
+    dataset: TiMauzi/imslp-midi-cc0-1.0
+    abc_fields: [abc, output, input]
+    params:
+      require_4_4: false
+    filters: {}
+    description: >
+      Public-domain (CC0) IMSLP classical score excerpts, standing in for
+      orchestral fantasy themes.
+
+training:
+  tunes_per_genre: 80
+  epochs: 8
+  markov_smoothing: 0.1
+  min_tune_notes: 8
+  output_dir: apps/web-studio/public/models
